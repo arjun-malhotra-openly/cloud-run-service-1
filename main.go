@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+
+	"google.golang.org/api/idtoken"
 )
 
 func main() {
@@ -31,7 +35,28 @@ func index(res http.ResponseWriter, req *http.Request) {
 }
 
 func callService2(res http.ResponseWriter, req *http.Request) {
-	resp, _ := http.Get("https://arjun-temp-service-2-5amxaxbpha-uc.a.run.app")
+	// resp, _ := http.Get("https://arjun-temp-service-2-5amxaxbpha-uc.a.run.app")
+	// respBytes, _ := io.ReadAll(resp.Body)
+	// io.WriteString(res, string(respBytes))
+	var client http.Client
+	ctx := context.Background()
+	audience := "https://arjun-temp-service-2-5amxaxbpha-uc.a.run.app"
+	ts, err := idtoken.NewTokenSource(ctx, audience)
+	if err != nil {
+		log.Println("err in getting a new token source", err)
+	}
+	token, err := ts.Token()
+	if err != nil {
+		log.Println("err in getting a new token from token source", err)
+	}
+	req, _ = http.NewRequest(http.MethodGet, audience, nil)
+	token.SetAuthHeader(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("err in getting a response", err)
+	}
 	respBytes, _ := io.ReadAll(resp.Body)
+
 	io.WriteString(res, string(respBytes))
+
 }
