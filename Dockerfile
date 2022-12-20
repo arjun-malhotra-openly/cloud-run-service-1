@@ -28,5 +28,6 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /app
 COPY --from=builder /app/appservice1 /app/appservice1
+EXPOSE 8080
 
 CMD ["./appservice1"]
