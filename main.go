@@ -26,7 +26,7 @@ func index(res http.ResponseWriter, req *http.Request) {
 		</head>
 		<body>
 			<p> Cloud Run Service 1 </p>
-            <form action="/submit" method="post">
+            <form action="/submit" method="get">
                 <input type="submit" />
             </form>
 		</body>
