@@ -53,10 +53,13 @@ func callService2(res http.ResponseWriter, req *http.Request) {
 	token.SetAuthHeader(req)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("err in getting a response", err)
+		log.Println("err in getting a response.", err)
 	}
-	respBytes, _ := io.ReadAll(resp.Body)
-
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("err in reading the response body.", err)
+	}
+	log.Println(string(respBytes))
 	io.WriteString(res, string(respBytes))
 
 }
