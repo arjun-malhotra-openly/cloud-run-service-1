@@ -7,12 +7,15 @@ import (
 	"log"
 	"net/http"
 
+	"golang.org/x/oauth2"
+	auth "golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
 )
 
 func main() {
 	http.HandleFunc("/", index)
-	http.HandleFunc("/submit", callService2)
+	http.HandleFunc("/submita", callService2a)
+	http.HandleFunc("/submitb", callService2b)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -25,16 +28,20 @@ func index(res http.ResponseWriter, req *http.Request) {
 			<title>JWT&Cookie Example</title>
 		</head>
 		<body>
-			<p> Cloud Run Service 1 </p>
-            <form action="/submit" method="get">
-                <input type="submit" />
+			<p> Cloud Run Service 1a </p>
+            <form action="/submita" method="get">
+				<input type="submit" />
+			</form>
+			<p> Cloud Run Service 1b </p>
+			<form action="/submitb" method="get">
+				<input type="submit" />
             </form>
 		</body>
 	</html>`
 	io.WriteString(res, html)
 }
 
-func callService2(res http.ResponseWriter, req *http.Request) {
+func callService2a(res http.ResponseWriter, req *http.Request) {
 	// resp, _ := http.Get("https://arjun-temp-service-2-5amxaxbpha-uc.a.run.app")
 	// respBytes, _ := io.ReadAll(resp.Body)
 	// io.WriteString(res, string(respBytes))
@@ -59,6 +66,39 @@ func callService2(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println("err in reading the response body.", err)
 	}
+	fmt.Printf("submita %v+", token)
+	log.Println(string(respBytes))
+	io.WriteString(res, string(respBytes))
+
+}
+
+func callService2b(res http.ResponseWriter, req *http.Request) {
+	ctx := context.Background()
+	var client http.Client
+	var token *oauth2.Token
+	scopes := []string{
+		"https://www.googleapis.com/auth/cloud-platform",
+	}
+	audience := "https://arjun-temp-service-2-5amxaxbpha-uc.a.run.app"
+
+	credentials, err := auth.FindDefaultCredentials(ctx, scopes...)
+	if err == nil {
+		token, err = credentials.TokenSource.Token()
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	reqService2, _ := http.NewRequest(http.MethodGet, audience, nil)
+	reqService2.Header.Set("Authorization", token.Type()+" "+token.Extra("id_token").(string))
+	resp, err := client.Do(reqService2)
+	if err != nil {
+		log.Println("err in getting a response.", err)
+	}
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("err in reading the response body.", err)
+	}
+	fmt.Printf("submitb %v+", token)
 	log.Println(string(respBytes))
 	io.WriteString(res, string(respBytes))
 
